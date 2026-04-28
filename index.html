@@ -3,31 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>予約表</title>
+
+  <!-- ★ タイトル変更 -->
+  <title>占い礼～aya~ 東京サロン予約表</title>
+
+  <!-- ★ おしゃれフォント（Shippori Mincho） -->
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&display=swap" rel="stylesheet">
+
   <style>
     body {
-      font-family: sans-serif;
+      font-family: "Shippori Mincho", serif;
       padding: 10px;
       background: #f5f5f5;
     }
+
     h2 {
       margin-top: 20px;
+      font-size: 26px;
+      font-weight: 600;
     }
+
     .date-tabs {
       display: flex;
       gap: 10px;
       margin-bottom: 20px;
     }
+
     .date-tab {
       padding: 8px 14px;
       background: #ddd;
       border-radius: 6px;
       cursor: pointer;
     }
+
     .date-tab.active {
       background: #4caf50;
       color: white;
     }
+
     .slot {
       background: white;
       padding: 10px;
@@ -36,15 +49,24 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      transition: background 0.3s;
     }
+
+    /* ★ 予約済みの色（淡いピンク） */
+    .reserved {
+      background: #ffe4e9 !important;
+    }
+
     .slot.gray {
       background: #ccc;
       color: #666;
     }
+
     input {
       width: 120px;
       padding: 6px;
     }
+
     button {
       padding: 6px 10px;
       background: #4caf50;
@@ -56,7 +78,9 @@
 </head>
 
 <body>
-  <h2>予約表</h2>
+
+  <!-- ★ タイトル変更 -->
+  <h2>占い礼～aya~ 東京サロン予約表</h2>
 
   <div class="date-tabs">
     <div class="date-tab active" data-date="2024-06-13">6/13</div>
@@ -66,7 +90,7 @@
 
   <div id="slots"></div>
 
-  <!-- Supabase v2 UMD 版 -->
+  <!-- Supabase v2 UMD -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
 
   <script>
@@ -76,30 +100,14 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3dWFuZ2d0bmdsd2xwZmRvamZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyOTQ0NzQsImV4cCI6MjA5Mjg3MDQ3NH0.lSgwuT9CrrNnp4gNC_N1Q_tjNP1EXKphnI9aEf3hWR8"
     );
 
-    // 時間枠（slot 1〜19）
+    // 時間枠
     const slotTimes = [
-  "9:30-10:00",
-  "10:05-10:35",
-  "10:40-11:10",
-  "11:15-11:45",
-  "11:50-12:20",
-  "12:25-12:55",
-  "13:00-13:30",
-  "13:35-14:05",
-  "14:10-14:40",
-  "14:45-15:15",
-  "15:20-15:50",
-  "15:55-16:25",
-  "16:30-17:00",
-  "17:05-17:35",
-  "17:40-18:05",
-  "18:10-18:40",
-  "18:45-19:15",
-  "19:20-19:50",
-  "19:55-20:25"
+      "9:30-10:00","10:05-10:35","10:40-11:10","11:15-11:45","11:50-12:20",
+      "12:25-12:55","13:00-13:30","13:35-14:05","14:10-14:40","14:45-15:15",
+      "15:20-15:50","15:55-16:25","16:30-17:00","17:05-17:35","17:40-18:05",
+      "18:10-18:40","18:45-19:15","19:20-19:50","19:55-20:25"
     ];
 
-    // 現在選択中の日付
     let currentDate = "2024-06-13";
 
     // 日付タブ切り替え
@@ -117,7 +125,7 @@
       const slotsDiv = document.getElementById("slots");
       slotsDiv.innerHTML = "";
 
-      const { data, error } = await client
+      const { data } = await client
         .from("reservations")
         .select("*")
         .eq("date", currentDate);
@@ -131,6 +139,12 @@
         const slotDiv = document.createElement("div");
         slotDiv.className = "slot";
 
+        // ★ 予約済みなら色変更
+        if (name && name.trim() !== "") {
+          slotDiv.classList.add("reserved");
+        }
+
+        // 6/15 の 11 以降はグレー
         if (currentDate === "2024-06-15" && i >= 11) {
           slotDiv.classList.add("gray");
         }
@@ -161,7 +175,6 @@
       loadSlots();
     }
 
-    // 初回読み込み
     loadSlots();
   </script>
 </body>
