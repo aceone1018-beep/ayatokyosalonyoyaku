@@ -1,183 +1,102 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>占い礼～aya~ 東京サロン予約表</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&display=swap" rel="stylesheet">
-
+  <meta charset="UTF-8">
+  <title>占い礼～aya～ 東京サロン予約表</title>
   <style>
-    body {
-      font-family: "Shippori Mincho", serif;
-      padding: 10px;
-      background: #f5f5f5;
-    }
-
-    h2 {
-      margin-top: 20px;
-      font-size: 26px;
-      font-weight: 600;
-    }
-
-    .date-tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .date-tab {
-      padding: 8px 14px;
-      background: #ddd;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .date-tab.active {
-      background: #4caf50;
-      color: white;
-    }
-
-    .slot {
-      background: white;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: background 0.3s;
-    }
-
-    .reserved {
-      background: #ffe4e9 !important;
-    }
-
-    .slot.gray {
-      background: #ccc;
-      color: #666;
-    }
-
-    input {
-      width: 120px;
-      padding: 6px;
-    }
-
-    button {
-      padding: 6px 10px;
-      color: white;
-      border: none;
-      border-radius: 4px;
-    }
+    body { font-family: sans-serif; padding: 20px; }
+    .date-tab { display: inline-block; padding: 8px 14px; margin-right: 8px; background: #eee; cursor: pointer; border-radius: 6px; }
+    .date-tab.active { background: #4CAF50; color: white; }
+    .slot { display: flex; align-items: center; margin: 8px 0; }
+    .slot input { flex: 1; padding: 6px; }
+    .slot button { margin-left: 8px; padding: 6px 12px; }
+    .reserved { background: #ffdddd; }
   </style>
 </head>
-
 <body>
 
-  <h2>占い礼～aya~ 東京サロン予約表</h2>
+<h2>占い礼～aya～ 東京サロン予約表</h2>
 
-  <div class="date-tabs">
-    <div class="date-tab active" data-date="2024-06-13">6/13</div>
-    <div class="date-tab" data-date="2024-06-14">6/14</div>
-    <div class="date-tab" data-date="2024-06-15">6/15</div>
-  </div>
+<div id="dateTabs"></div>
+<div id="slots"></div>
 
-  <div id="slots"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
+<script>
+  const client = supabase.createClient(
+    "https://swuanggtnglwlpfdojfn.supabase.co",
+    "sb_publishable_srG-Ha_kLmUHLFXZ_C4g-g_IhQXR..."   // ← あなたの publishable key をここに丸ごと貼る
+  );
 
-  <script>
-    const client = supabase.createClient(
-      "https://swuanggtnglwlpfdjofn.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3dWFuZ2d0bmdsd2xwZmRvamZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyOTQ0NzQsImV4cCI6MjA5Mjg3MDQ3NH0.lSgwuT9CrrNnp4gNC_N1Q_tjNP1EXKphnI9aEf3hWR8"
-    );
+  const dates = ["2024-06-13", "2024-06-14", "2024-06-15"];
 
-    const slotTimes = [
-      "9:30-10:00","10:05-10:35","10:40-11:10","11:15-11:45","11:50-12:20",
-      "12:25-12:55","13:00-13:30","13:35-14:05","14:10-14:40","14:45-15:15",
-      "15:20-15:50","15:55-16:25","16:30-17:00","17:05-17:35","17:40-18:05",
-      "18:10-18:40","18:45-19:15","19:20-19:50","19:55-20:25"
-    ];
+  const slotTimes = [
+    "9:30-10:00","10:05-10:35","10:40-11:10","11:15-11:45","11:50-12:20",
+    "12:25-12:55","13:00-13:30","13:35-14:05","14:10-14:40","14:45-15:15",
+    "15:20-15:50","15:55-16:25","16:30-17:00"
+  ];
 
-    let currentDate = "2024-06-13";
+  let currentDate = dates[0];
 
-    document.querySelectorAll(".date-tab").forEach(tab => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll(".date-tab").forEach(t => t.classList.remove("active"));
-        tab.classList.add("active");
-        currentDate = tab.dataset.date;
-        loadSlots();
-      });
+  function renderDateTabs() {
+    const tabs = document.getElementById("dateTabs");
+    tabs.innerHTML = "";
+    dates.forEach(date => {
+      const tab = document.createElement("div");
+      tab.className = "date-tab" + (date === currentDate ? " active" : "");
+      tab.textContent = date.replace("2024-", "").replace("-", "/");
+      tab.onclick = () => { currentDate = date; renderDateTabs(); loadSlots(); };
+      tabs.appendChild(tab);
     });
+  }
 
-    async function loadSlots() {
-      const slotsDiv = document.getElementById("slots");
-      slotsDiv.innerHTML = "";
+  async function loadSlots() {
+    const { data } = await client.from("reservations").select("*").eq("date", currentDate);
 
-      const { data } = await client
-        .from("reservations")
-        .select("*")
-        .eq("date", currentDate);
+    const slots = document.getElementById("slots");
+    slots.innerHTML = "";
 
-      const rows = data || [];
+    slotTimes.forEach((time, index) => {
+      const row = document.createElement("div");
+      row.className = "slot";
 
-      for (let i = 1; i <= 19; i++) {
-        const record = rows.find(r => Number(r.slot) === i);
-        const name = record ? record.name : "";
-        const isReserved = name && name.trim() !== "";
+      const input = document.createElement("input");
+      input.placeholder = time;
 
-        const slotDiv = document.createElement("div");
-        slotDiv.className = "slot";
+      const btn = document.createElement("button");
 
-        if (isReserved) slotDiv.classList.add("reserved");
+      const found = data.find(r => r.slot === index + 1);
 
-        const isGray = currentDate === "2024-06-15" && i >= 11;
-        if (isGray) slotDiv.classList.add("gray");
-
-        slotDiv.innerHTML = `
-          <div>${i}. ${slotTimes[i - 1]}</div>
-          <input id="name-${i}" value="${name}" ${isReserved || isGray ? "disabled" : ""}>
-          <button id="btn-${i}"
-            style="background:${isReserved ? "#d9534f" : "#4caf50"}"
-            onclick="${isReserved ? `cancelSlot(${i})` : `saveSlot(${i})`}"
-            ${isGray ? "disabled" : ""}
-          >
-            ${isReserved ? "解除" : "確定"}
-          </button>
-        `;
-
-        slotsDiv.appendChild(slotDiv);
+      if (found) {
+        row.classList.add("reserved");
+        input.value = found.name;
+        btn.textContent = "解除";
+        btn.onclick = () => cancelSlot(index + 1);
+      } else {
+        btn.textContent = "確定";
+        btn.onclick = () => reserveSlot(index + 1, input.value);
       }
-    }
 
-    async function saveSlot(slot) {
-      const name = document.getElementById(`name-${slot}`).value;
+      row.appendChild(input);
+      row.appendChild(btn);
+      slots.appendChild(row);
+    });
+  }
 
-      await client
-        .from("reservations")
-        .upsert({
-          date: currentDate,
-          slot: slot,
-          name: name
-        });
-
-      loadSlots();
-    }
-
-    async function cancelSlot(slot) {
-      await client
-        .from("reservations")
-        .upsert({
-          date: currentDate,
-          slot: slot,
-          name: ""
-        });
-
-      loadSlots();
-    }
-
+  async function reserveSlot(slot, name) {
+    if (!name) return alert("名前を入力してください");
+    await client.from("reservations").insert({ date: currentDate, slot, name });
     loadSlots();
-  </script>
+  }
+
+  async function cancelSlot(slot) {
+    await client.from("reservations").delete().eq("date", currentDate).eq("slot", slot);
+    loadSlots();
+  }
+
+  renderDateTabs();
+  loadSlots();
+</script>
+
 </body>
 </html>
