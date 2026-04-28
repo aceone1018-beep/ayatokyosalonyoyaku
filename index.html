@@ -6,7 +6,6 @@
 
   <title>占い礼～aya~ 東京サロン予約表</title>
 
-  <!-- おしゃれフォント -->
   <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
@@ -51,7 +50,6 @@
       transition: background 0.3s;
     }
 
-    /* 予約済みの色 */
     .reserved {
       background: #ffe4e9 !important;
     }
@@ -87,17 +85,14 @@
 
   <div id="slots"></div>
 
-  <!-- Supabase v2 UMD -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
 
   <script>
-    // Supabase 初期化
     const client = supabase.createClient(
       "https://swuanggtnglwlpfdjofjn.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3dWFuZ2d0bmdsd2xwZmRvamZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyOTQ0NzQsImV4cCI6MjA5Mjg3MDQ3NH0.lSgwuT9CrrNnp4gNC_N1Q_tjNP1EXKphnI9aEf3hWR8"
     );
 
-    // 時間枠
     const slotTimes = [
       "9:30-10:00","10:05-10:35","10:40-11:10","11:15-11:45","11:50-12:20",
       "12:25-12:55","13:00-13:30","13:35-14:05","14:10-14:40","14:45-15:15",
@@ -107,7 +102,6 @@
 
     let currentDate = "2024-06-13";
 
-    // 日付タブ切り替え
     document.querySelectorAll(".date-tab").forEach(tab => {
       tab.addEventListener("click", () => {
         document.querySelectorAll(".date-tab").forEach(t => t.classList.remove("active"));
@@ -117,7 +111,6 @@
       });
     });
 
-    // スロット読み込み
     async function loadSlots() {
       const slotsDiv = document.getElementById("slots");
       slotsDiv.innerHTML = "";
@@ -130,17 +123,15 @@
       const rows = data || [];
 
       for (let i = 1; i <= 19; i++) {
-        const record = rows.find(r => r.slot === i);
+        const record = rows.find(r => Number(r.slot) === i);
         const name = record ? record.name : "";
         const isReserved = name && name.trim() !== "";
 
         const slotDiv = document.createElement("div");
         slotDiv.className = "slot";
 
-        // 予約済みなら色変更
         if (isReserved) slotDiv.classList.add("reserved");
 
-        // 6/15 の 11 以降はグレー
         const isGray = currentDate === "2024-06-15" && i >= 11;
         if (isGray) slotDiv.classList.add("gray");
 
@@ -160,7 +151,6 @@
       }
     }
 
-    // 確定（保存）
     async function saveSlot(slot) {
       const name = document.getElementById(`name-${slot}`).value;
 
@@ -175,7 +165,6 @@
       loadSlots();
     }
 
-    // 解除
     async function cancelSlot(slot) {
       await client
         .from("reservations")
