@@ -2,26 +2,27 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>占い礼～aya～ 東京サロン予約表</title>
 
 <style>
 body {
   font-family: sans-serif;
-  padding: 14px;
+  padding: 10px;
   background: #fafafa;
   margin: 0;
 }
 
 h2 {
-  font-size: 20px;
-  margin-bottom: 16px;
+  font-size: 18px;
   text-align: center;
+  margin-bottom: 14px;
 }
 
 #dateTabs {
   display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 6px;
+  margin-bottom: 12px;
 }
 
 .date-tab {
@@ -29,7 +30,6 @@ h2 {
   text-align: center;
   padding: 10px 6px;
   background: #eee;
-  cursor: pointer;
   border-radius: 8px;
   font-weight: bold;
 }
@@ -40,11 +40,8 @@ h2 {
 }
 
 .slot {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 8px 0;
-  padding: 10px;
+  margin-bottom: 10px;
+  padding: 12px;
   background: white;
   border-radius: 10px;
   border: 1px solid #ddd;
@@ -52,51 +49,41 @@ h2 {
 
 .slot.reserved {
   background: #ffecec;
-  border-color: #ff9999;
 }
 
 .slot.unavailable {
   background: #e0e0e0;
-  border-color: #bbb;
   color: #777;
 }
 
 .time-label {
-  width: 105px;
-  font-size: 14px;
   font-weight: bold;
-  flex-shrink: 0;
+  margin-bottom: 6px;
 }
 
 .slot input {
-  flex: 1;
-  min-width: 0;
-  padding: 10px;
+  width: 100%;
+  padding: 12px;
   font-size: 16px;
+  margin-bottom: 6px;
   border: 1px solid #ccc;
   border-radius: 8px;
+  box-sizing: border-box;
 }
 
 .slot input:disabled {
   background: #f5f5f5;
-  color: #333;
   font-weight: bold;
-}
-
-.slot.unavailable input {
-  background: #d6d6d6;
-  color: #777;
 }
 
 .slot button {
-  min-width: 72px;
-  padding: 11px 10px;
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
   border: none;
   border-radius: 8px;
   color: white;
-  cursor: pointer;
   font-weight: bold;
-  font-size: 14px;
 }
 
 .confirm-btn {
@@ -109,36 +96,6 @@ h2 {
 
 .unavailable-btn {
   background: #999;
-  cursor: not-allowed;
-}
-
-/* スマホ最適化 */
-@media screen and (max-width: 480px) {
-
-  .slot {
-    display: grid;
-    grid-template-columns: 1fr 80px;
-    grid-template-areas:
-      "time button"
-      "input input";
-    gap: 8px;
-  }
-
-  .time-label {
-    grid-area: time;
-    width: auto;
-    font-size: 15px;
-  }
-
-  .slot input {
-    grid-area: input;
-    width: 100%;
-  }
-
-  .slot button {
-    grid-area: button;
-    width: 80px;
-  }
 }
 </style>
 </head>
