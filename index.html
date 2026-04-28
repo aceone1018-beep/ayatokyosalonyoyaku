@@ -25,10 +25,8 @@
 <script>
   const client = supabase.createClient(
     "https://swuanggtnglwlpfdojfn.supabase.co",
-    "sb_publishable_srG-Ha_kLmUHLFXZ_C4g-g_IhQXRxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    "ここにあなたの anon key（sb_publishable_〜）をそのまま貼る"
   );
-
-  const ADMIN_KEY = "aya-admin-2024"; // 管理者だけ解除できるようにする
 
   const dates = ["2024-06-13", "2024-06-14", "2024-06-15"];
 
@@ -67,21 +65,13 @@
 
       const btn = document.createElement("button");
 
-      const found = data.find(r => r.slot === index + 1);
+      const found = data?.find(r => r.slot === index + 1);
 
       if (found) {
         row.classList.add("reserved");
         input.value = found.name;
-
-        const adminKey = localStorage.getItem("aya-admin");
-        if (adminKey === ADMIN_KEY) {
-          btn.textContent = "解除";
-          btn.onclick = () => cancelSlot(index + 1);
-        } else {
-          btn.textContent = "予約済";
-          btn.disabled = true;
-        }
-
+        btn.textContent = "解除";
+        btn.onclick = () => cancelSlot(index + 1);
       } else {
         btn.textContent = "確定";
         btn.onclick = () => reserveSlot(index + 1, input.value);
@@ -95,7 +85,6 @@
 
   async function reserveSlot(slot, name) {
     if (!name) return alert("名前を入力してください");
-
     await client.from("reservations").insert({ date: currentDate, slot, name });
     loadSlots();
   }
