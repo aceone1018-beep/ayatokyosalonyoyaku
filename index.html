@@ -3,16 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <title>占い礼～aya～ 東京サロン予約表</title>
+
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .date-tab { display: inline-block; padding: 8px 14px; margin-right: 8px; background: #eee; cursor: pointer; border-radius: 6px; }
-    .date-tab.active { background: #4CAF50; color: white; }
-    .slot { display: flex; align-items: center; margin: 8px 0; }
-    .slot input { flex: 1; padding: 6px; }
-    .slot button { margin-left: 8px; padding: 6px 12px; }
-    .reserved { background: #ffdddd; }
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #fafafa;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    .date-tab {
+      display: inline-block;
+      padding: 8px 14px;
+      margin-right: 8px;
+      margin-bottom: 16px;
+      background: #eee;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    .date-tab.active {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .slot {
+      display: flex;
+      align-items: center;
+      margin: 8px 0;
+      padding: 8px;
+      background: white;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+    }
+
+    .slot.reserved {
+      background: #ffecec;
+      border-color: #ff9999;
+    }
+
+    .slot.unavailable {
+      background: #e0e0e0;
+      border-color: #bbb;
+      color: #777;
+    }
+
+    .time-label {
+      width: 120px;
+      font-weight: bold;
+    }
+
+    .slot input {
+      flex: 1;
+      padding: 8px;
+      font-size: 15px;
+    }
+
+    .slot input:disabled {
+      background: #f5f5f5;
+      font-weight: bold;
+    }
+
+    .slot.unavailable input {
+      background: #d6d6d6;
+      color: #777;
+    }
+
+    .slot button {
+      margin-left: 8px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .confirm-btn {
+      background: #4CAF50;
+    }
+
+    .cancel-btn {
+      background: #e53935;
+    }
+
+    .unavailable-btn {
+      background: #999;
+      cursor: not-allowed;
+    }
   </style>
 </head>
+
 <body>
 
 <h2>占い礼～aya～ 東京サロン予約表</h2>
@@ -23,9 +107,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
 
 <script>
-  const client = supabase.createClient(
-    "https://swuanggtnglwlpfdojfn.supabase.co",
-    "ここにあなたの anon key（sb_publishable_〜）をそのまま貼る"
+   const client = supabase.createClient(
+  "https://swuanggtnglwlpfdojfn.supabase.co",
+  "sb_publishable_srG-Ha_kLmuHLFXZ_C4g-g_IhQXRM4H"
   );
 
   const dates = ["2024-06-13", "2024-06-14", "2024-06-15"];
@@ -33,7 +117,8 @@
   const slotTimes = [
     "9:30-10:00","10:05-10:35","10:40-11:10","11:15-11:45","11:50-12:20",
     "12:25-12:55","13:00-13:30","13:35-14:05","14:10-14:40","14:45-15:15",
-    "15:20-15:50","15:55-16:25","16:30-17:00"
+    "15:20-15:50","15:55-16:25","16:30-17:00","17:05-17:35","17:40-18:05",
+    "18:10-18:40","18:45-19:15","19:20-19:50","19:55-20:25"
   ];
 
   let currentDate = dates[0];
@@ -41,42 +126,89 @@
   function renderDateTabs() {
     const tabs = document.getElementById("dateTabs");
     tabs.innerHTML = "";
+
     dates.forEach(date => {
       const tab = document.createElement("div");
       tab.className = "date-tab" + (date === currentDate ? " active" : "");
       tab.textContent = date.replace("2024-", "").replace("-", "/");
-      tab.onclick = () => { currentDate = date; renderDateTabs(); loadSlots(); };
+
+      tab.onclick = () => {
+        currentDate = date;
+        renderDateTabs();
+        loadSlots();
+      };
+
       tabs.appendChild(tab);
     });
   }
 
   async function loadSlots() {
-    const { data } = await client.from("reservations").select("*").eq("date", currentDate);
+    const { data, error } = await client
+      .from("reservations")
+      .select("*")
+      .eq("date", currentDate);
 
+    if (error) {
+      alert("データ取得エラー");
+      console.error(error);
+      return;
+    }
+
+    const reservations = data || [];
     const slots = document.getElementById("slots");
     slots.innerHTML = "";
 
     slotTimes.forEach((time, index) => {
+      const slotNumber = index + 1;
+      const found = reservations.find(r => r.slot === slotNumber);
+
       const row = document.createElement("div");
       row.className = "slot";
 
+      const timeLabel = document.createElement("div");
+      timeLabel.className = "time-label";
+      timeLabel.textContent = time;
+
       const input = document.createElement("input");
-      input.placeholder = time;
+      input.type = "text";
+      input.placeholder = "お名前を入力";
 
       const btn = document.createElement("button");
 
-      const found = data?.find(r => r.slot === index + 1);
+      // 6/15だけ 14:45以降は予約不可
+      const isUnavailable =
+        currentDate === "2024-06-15" && index >= 9;
 
-      if (found) {
+      if (isUnavailable) {
+        row.classList.add("unavailable");
+
+        input.disabled = true;
+        input.placeholder = "予約不可";
+
+        btn.textContent = "予約不可";
+        btn.className = "unavailable-btn";
+        btn.disabled = true;
+
+      } else if (found) {
         row.classList.add("reserved");
+
         input.value = found.name;
+        input.disabled = true;
+
         btn.textContent = "解除";
-        btn.onclick = () => cancelSlot(index + 1);
+        btn.className = "cancel-btn";
+        btn.onclick = () => cancelSlot(slotNumber);
+
       } else {
+        input.value = "";
+        input.disabled = false;
+
         btn.textContent = "確定";
-        btn.onclick = () => reserveSlot(index + 1, input.value);
+        btn.className = "confirm-btn";
+        btn.onclick = () => reserveSlot(slotNumber, input.value);
       }
 
+      row.appendChild(timeLabel);
       row.appendChild(input);
       row.appendChild(btn);
       slots.appendChild(row);
@@ -84,13 +216,43 @@
   }
 
   async function reserveSlot(slot, name) {
-    if (!name) return alert("名前を入力してください");
-    await client.from("reservations").insert({ date: currentDate, slot, name });
+    const cleanName = name.trim();
+
+    if (!cleanName) {
+      alert("名前を入力してください");
+      return;
+    }
+
+    const { error } = await client
+      .from("reservations")
+      .insert({
+        date: currentDate,
+        slot: slot,
+        name: cleanName
+      });
+
+    if (error) {
+      alert("予約できません（重複の可能性）");
+      console.error(error);
+      return;
+    }
+
     loadSlots();
   }
 
   async function cancelSlot(slot) {
-    await client.from("reservations").delete().eq("date", currentDate).eq("slot", slot);
+    const { error } = await client
+      .from("reservations")
+      .delete()
+      .eq("date", currentDate)
+      .eq("slot", slot);
+
+    if (error) {
+      alert("解除できません");
+      console.error(error);
+      return;
+    }
+
     loadSlots();
   }
 
