@@ -4,10 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- ★ タイトル変更 -->
   <title>占い礼～aya~ 東京サロン予約表</title>
 
-  <!-- ★ おしゃれフォント（Shippori Mincho） -->
+  <!-- おしゃれフォント -->
   <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
@@ -52,7 +51,7 @@
       transition: background 0.3s;
     }
 
-    /* ★ 予約済みの色（淡いピンク） */
+    /* 予約済みの色 */
     .reserved {
       background: #ffe4e9 !important;
     }
@@ -69,7 +68,6 @@
 
     button {
       padding: 6px 10px;
-      background: #4caf50;
       color: white;
       border: none;
       border-radius: 4px;
@@ -79,7 +77,6 @@
 
 <body>
 
-  <!-- ★ タイトル変更 -->
   <h2>占い礼～aya~ 東京サロン予約表</h2>
 
   <div class="date-tabs">
@@ -135,31 +132,35 @@
       for (let i = 1; i <= 19; i++) {
         const record = rows.find(r => r.slot === i);
         const name = record ? record.name : "";
+        const isReserved = name && name.trim() !== "";
 
         const slotDiv = document.createElement("div");
         slotDiv.className = "slot";
 
-        // ★ 予約済みなら色変更
-        if (name && name.trim() !== "") {
-          slotDiv.classList.add("reserved");
-        }
+        // 予約済みなら色変更
+        if (isReserved) slotDiv.classList.add("reserved");
 
         // 6/15 の 11 以降はグレー
-        if (currentDate === "2024-06-15" && i >= 11) {
-          slotDiv.classList.add("gray");
-        }
+        const isGray = currentDate === "2024-06-15" && i >= 11;
+        if (isGray) slotDiv.classList.add("gray");
 
         slotDiv.innerHTML = `
           <div>${i}. ${slotTimes[i - 1]}</div>
-          <input id="name-${i}" value="${name}" ${slotDiv.classList.contains("gray") ? "disabled" : ""}>
-          <button onclick="saveSlot(${i})" ${slotDiv.classList.contains("gray") ? "disabled" : ""}>保存</button>
+          <input id="name-${i}" value="${name}" ${isReserved || isGray ? "disabled" : ""}>
+          <button id="btn-${i}"
+            style="background:${isReserved ? "#d9534f" : "#4caf50"}"
+            onclick="${isReserved ? `cancelSlot(${i})` : `saveSlot(${i})`}"
+            ${isGray ? "disabled" : ""}
+          >
+            ${isReserved ? "解除" : "確定"}
+          </button>
         `;
 
         slotsDiv.appendChild(slotDiv);
       }
     }
 
-    // 保存処理
+    // 確定（保存）
     async function saveSlot(slot) {
       const name = document.getElementById(`name-${slot}`).value;
 
@@ -171,7 +172,19 @@
           name: name
         });
 
-      alert("保存しました");
+      loadSlots();
+    }
+
+    // 解除
+    async function cancelSlot(slot) {
+      await client
+        .from("reservations")
+        .upsert({
+          date: currentDate,
+          slot: slot,
+          name: ""
+        });
+
       loadSlots();
     }
 
